@@ -16,13 +16,9 @@
 #include "imgui/imgui.h"
 
 #include "Config.h"
-#include "Hacks/AntiAim.h"
-#include "Hacks/Backtrack.h"
-#include "Hacks/Glow.h"
 #include "InventoryChanger/InventoryChanger.h"
-#include "Hacks/Sound.h"
-#include "Hacks/Visuals.h"
 #include "Hacks/Misc.h"
+#include <Helpers.h>
 
 #ifdef _WIN32
 int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPARAM lParam)
@@ -70,7 +66,7 @@ int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPA
         path = homeDir;
 #endif
 
-    path /= "Osiris";
+    path /= "Test";
     return path;
 }
 
@@ -168,85 +164,6 @@ static void from_json(const json& j, Projectile& p)
     read<value_t::object>(j, "Trails", p.trails);
 }
 
-static void from_json(const json& j, Player& p)
-{
-    from_json(j, static_cast<Shared&>(p));
-
-    read<value_t::object>(j, "Weapon", p.weapon);
-    read<value_t::object>(j, "Flash Duration", p.flashDuration);
-    read(j, "Audible Only", p.audibleOnly);
-    read(j, "Spotted Only", p.spottedOnly);
-    read<value_t::object>(j, "Health Bar", p.healthBar);
-    read<value_t::object>(j, "Skeleton", p.skeleton);
-    read<value_t::object>(j, "Head Box", p.headBox);
-}
-
-static void from_json(const json& j, Config::Aimbot& a)
-{
-    read(j, "Enabled", a.enabled);
-    read(j, "Aimlock", a.aimlock);
-    read(j, "Silent", a.silent);
-    read(j, "Friendly fire", a.friendlyFire);
-    read(j, "Visible only", a.visibleOnly);
-    read(j, "Scoped only", a.scopedOnly);
-    read(j, "Ignore flash", a.ignoreFlash);
-    read(j, "Ignore smoke", a.ignoreSmoke);
-    read(j, "Auto shot", a.autoShot);
-    read(j, "Auto scope", a.autoScope);
-    read(j, "Fov", a.fov);
-    read(j, "Smooth", a.smooth);
-    read(j, "Bone", a.bone);
-    read(j, "Max aim inaccuracy", a.maxAimInaccuracy);
-    read(j, "Max shot inaccuracy", a.maxShotInaccuracy);
-    read(j, "Min damage", a.minDamage);
-    read(j, "Killshot", a.killshot);
-    read(j, "Between shots", a.betweenShots);
-}
-
-static void from_json(const json& j, Config::Triggerbot& t)
-{
-    read(j, "Enabled", t.enabled);
-    read(j, "Friendly fire", t.friendlyFire);
-    read(j, "Scoped only", t.scopedOnly);
-    read(j, "Ignore flash", t.ignoreFlash);
-    read(j, "Ignore smoke", t.ignoreSmoke);
-    read(j, "Hitgroup", t.hitgroup);
-    read(j, "Shot delay", t.shotDelay);
-    read(j, "Min damage", t.minDamage);
-    read(j, "Killshot", t.killshot);
-    read(j, "Burst Time", t.burstTime);
-}
-
-static void from_json(const json& j, Config::Chams::Material& m)
-{
-    from_json(j, static_cast<Color4&>(m));
-
-    read(j, "Enabled", m.enabled);
-    read(j, "Health based", m.healthBased);
-    read(j, "Blinking", m.blinking);
-    read(j, "Wireframe", m.wireframe);
-    read(j, "Cover", m.cover);
-    read(j, "Ignore-Z", m.ignorez);
-    read(j, "Material", m.material);
-}
-
-static void from_json(const json& j, Config::Chams& c)
-{
-    read_array_opt(j, "Materials", c.materials);
-}
-
-static void from_json(const json& j, Config::StreamProofESP& e)
-{
-    read(j, "Toggle Key", e.toggleKey);
-    read(j, "Hold Key", e.holdKey);
-    read(j, "Allies", e.allies);
-    read(j, "Enemies", e.enemies);
-    read(j, "Weapons", e.weapons);
-    read(j, "Projectiles", e.projectiles);
-    read(j, "Loot Crates", e.lootCrates);
-    read(j, "Other Entities", e.otherEntities);
-}
-
 static void from_json(const json& j, Config::Style& s)
 {
     read(j, "Menu style", s.menuStyle);
@@ -290,27 +207,7 @@ void Config::load(const char8_t* name, bool incremental) noexcept
     if (!incremental)
         reset();
 
-    read(j, "Aimbot", aimbot);
-    read(j, "Aimbot On key", aimbotOnKey);
-    read(j, "Aimbot Key", aimbotKey);
-    read(j, "Aimbot Key mode", aimbotKeyMode);
-
-    read(j, "Triggerbot", triggerbot);
-    read(j, "Triggerbot Key", triggerbotHoldKey);
-
-    read(j, "Chams", chams);
-    read(j["Chams"], "Toggle Key", chamsToggleKey);
-    read(j["Chams"], "Hold Key", chamsHoldKey);
-    read<value_t::object>(j, "ESP", streamProofESP);
-    read<value_t::object>(j, "Style", style);
-
-    AntiAim::fromJson(j["Anti aim"]);
-    Backtrack::fromJson(j["Backtrack"]);
-    Glow::fromJson(j["Glow"]);
-    Visuals::fromJson(j["Visuals"]);
     InventoryChanger::fromJson(j["Inventory Changer"]);
-    Sound::fromJson(j["Sound"]);
-    Misc::fromJson(j["Misc"]);
 }
 
 static void to_json(json& j, const ColorToggleRounding& o, const ColorToggleRounding& dummy = {})
@@ -400,73 +297,6 @@ static void to_json(json& j, const ImVec2& o, const ImVec2& dummy = {})
     WRITE("Y", y);
 }
 
-static void to_json(json& j, const Config::Aimbot& o, const Config::Aimbot& dummy = {})
-{
-    WRITE("Enabled", enabled);
-    WRITE("Aimlock", aimlock);
-    WRITE("Silent", silent);
-    WRITE("Friendly fire", friendlyFire);
-    WRITE("Visible only", visibleOnly);
-    WRITE("Scoped only", scopedOnly);
-    WRITE("Ignore flash", ignoreFlash);
-    WRITE("Ignore smoke", ignoreSmoke);
-    WRITE("Auto shot", autoShot);
-    WRITE("Auto scope", autoScope);
-    WRITE("Fov", fov);
-    WRITE("Smooth", smooth);
-    WRITE("Bone", bone);
-    WRITE("Max aim inaccuracy", maxAimInaccuracy);
-    WRITE("Max shot inaccuracy", maxShotInaccuracy);
-    WRITE("Min damage", minDamage);
-    WRITE("Killshot", killshot);
-    WRITE("Between shots", betweenShots);
-}
-
-static void to_json(json& j, const Config::Triggerbot& o, const Config::Triggerbot& dummy = {})
-{
-    WRITE("Enabled", enabled);
-    WRITE("Friendly fire", friendlyFire);
-    WRITE("Scoped only", scopedOnly);
-    WRITE("Ignore flash", ignoreFlash);
-    WRITE("Ignore smoke", ignoreSmoke);
-    WRITE("Hitgroup", hitgroup);
-    WRITE("Shot delay", shotDelay);
-    WRITE("Min damage", minDamage);
-    WRITE("Killshot", killshot);
-    WRITE("Burst Time", burstTime);
-}
-
-static void to_json(json& j, const Config::Chams::Material& o)
-{
-    const Config::Chams::Material dummy;
-
-    to_json(j, static_cast<const Color4&>(o), dummy);
-    WRITE("Enabled", enabled);
-    WRITE("Health based", healthBased);
-    WRITE("Blinking", blinking);
-    WRITE("Wireframe", wireframe);
-    WRITE("Cover", cover);
-    WRITE("Ignore-Z", ignorez);
-    WRITE("Material", material);
-}
-
-static void to_json(json& j, const Config::Chams& o)
-{
-    j["Materials"] = o.materials;
-}
-
-static void to_json(json& j, const Config::StreamProofESP& o, const Config::StreamProofESP& dummy = {})
-{
-    WRITE("Toggle Key", toggleKey);
-    WRITE("Hold Key", holdKey);
-    j["Allies"] = o.allies;
-    j["Enemies"] = o.enemies;
-    j["Weapons"] = o.weapons;
-    j["Projectiles"] = o.projectiles;
-    j["Loot Crates"] = o.lootCrates;
-    j["Other Entities"] = o.otherEntities;
-}
-
 static void to_json(json& j, const ImVec4& o)
 {
     j[0] = o.x;
@@ -506,25 +336,6 @@ void Config::save(size_t id) const noexcept
 {
     json j;
 
-    j["Aimbot"] = aimbot;
-    j["Aimbot On key"] = aimbotOnKey;
-    to_json(j["Aimbot Key"], aimbotKey, {});
-    j["Aimbot Key mode"] = aimbotKeyMode;
-
-    j["Triggerbot"] = triggerbot;
-    to_json(j["Triggerbot Key"], triggerbotHoldKey, {});
-
-    j["Backtrack"] = Backtrack::toJson();
-    j["Anti aim"] = AntiAim::toJson();
-    j["Glow"] = Glow::toJson();
-    j["Chams"] = chams;
-    to_json(j["Chams"]["Toggle Key"], chamsToggleKey, {});
-    to_json(j["Chams"]["Hold Key"], chamsHoldKey, {});
-    j["ESP"] = streamProofESP;
-    j["Sound"] = Sound::toJson();
-    j["Visuals"] = Visuals::toJson();
-    j["Misc"] = Misc::toJson();
-    j["Style"] = style;
     j["Inventory Changer"] = InventoryChanger::toJson();
 
     removeEmptyObjects(j);
@@ -558,19 +369,7 @@ void Config::rename(size_t item, std::u8string_view newName) noexcept
 
 void Config::reset() noexcept
 {
-    aimbot = { };
-    triggerbot = { };
-    chams = { };
-    streamProofESP = { };
-    style = { };
-
-    AntiAim::resetConfig();
-    Backtrack::resetConfig();
-    Glow::resetConfig();
-    Visuals::resetConfig();
     InventoryChanger::resetConfig();
-    Sound::resetConfig();
-    Misc::resetConfig();
 }
 
 void Config::listConfigs() noexcept

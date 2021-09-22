@@ -9,7 +9,6 @@
 
 #include "InventoryChanger/InventoryChanger.h"
 #include "Hacks/Misc.h"
-#include "Hacks/Visuals.h"
 #include "Interfaces.h"
 #include "Netvars.h"
 
@@ -24,24 +23,12 @@
 
 static std::unordered_map<std::uint32_t, std::pair<recvProxy, recvProxy*>> proxies;
 
-static void __CDECL spottedHook(recvProxyData& data, void* arg2, void* arg3) noexcept
-{
-    if (Misc::isRadarHackOn())
-        data.value._int = 1;
-
-    constexpr auto hash{ fnv::hash("CBaseEntity->m_bSpotted") };
-    proxies[hash].first(data, arg2, arg3);
-}
-
 static void __CDECL viewModelSequence(recvProxyData& data, void* outStruct, void* arg3) noexcept
 {
     const auto viewModel = reinterpret_cast<Entity*>(outStruct);
 
     if (localPlayer && interfaces->entityList->getEntityFromHandle(viewModel->owner()) == localPlayer.get()) {
         if (const auto weapon = interfaces->entityList->getEntityFromHandle(viewModel->weapon())) {
-            if (Visuals::isDeagleSpinnerOn() && weapon->getClientClass()->classId == ClassId::Deagle && data.value._int == 7)
-                data.value._int = 8;
-
             InventoryChanger::fixKnifeAnimation(weapon, data.value._int);
         }
     }
@@ -71,8 +58,6 @@ static void walkTable(const char* networkName, RecvTable* recvTable, const std::
 
         constexpr auto getHook{ [](std::uint32_t hash) noexcept -> recvProxy {
              switch (hash) {
-             case fnv::hash("CBaseEntity->m_bSpotted"):
-                 return spottedHook;
              case fnv::hash("CBaseViewModel->m_nSequence"):
                  return viewModelSequence;
              default:

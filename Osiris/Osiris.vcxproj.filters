@@ -77,41 +77,17 @@
     <ClCompile Include="Osiris.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hacks\Glow.cpp">
-      <Filter>Hacks</Filter>
-    </ClCompile>
-    <ClCompile Include="Hacks\Triggerbot.cpp">
-      <Filter>Hacks</Filter>
-    </ClCompile>
-    <ClCompile Include="Hacks\Chams.cpp">
-      <Filter>Hacks</Filter>
-    </ClCompile>
-    <ClCompile Include="Hacks\Aimbot.cpp">
-      <Filter>Hacks</Filter>
-    </ClCompile>
     <ClCompile Include="Netvars.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hacks\Visuals.cpp">
-      <Filter>Hacks</Filter>
-    </ClCompile>
-    <ClCompile Include="Hacks\Backtrack.cpp">
-      <Filter>Hacks</Filter>
-    </ClCompile>
     <ClCompile Include="SDK\GlobalVars.cpp">
       <Filter>SDK</Filter>
-    </ClCompile>
-    <ClCompile Include="Hacks\AntiAim.cpp">
-      <Filter>Hacks</Filter>
     </ClCompile>
     <ClCompile Include="imguiCustom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="imgui\imgui_stdlib.cpp">
       <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="Hacks\EnginePrediction.cpp">
-      <Filter>Hacks</Filter>
     </ClCompile>
     <ClCompile Include="SDK\KeyValues.cpp">
       <Filter>SDK</Filter>
@@ -151,9 +127,6 @@
     </ClCompile>
     <ClCompile Include="GameData.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Hacks\StreamProofESP.cpp">
-      <Filter>Hacks</Filter>
     </ClCompile>
     <ClCompile Include="Helpers.cpp">
       <Filter>Source Files</Filter>
@@ -217,9 +190,6 @@
     </ClCompile>
     <ClCompile Include="imgui\imgui_freetype.cpp">
       <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="Hacks\Sound.cpp">
-      <Filter>Hacks</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
@@ -319,12 +289,6 @@
     <ClInclude Include="SDK\Cvar.h">
       <Filter>SDK</Filter>
     </ClInclude>
-    <ClInclude Include="Hacks\Glow.h">
-      <Filter>Hacks</Filter>
-    </ClInclude>
-    <ClInclude Include="Hacks\Triggerbot.h">
-      <Filter>Hacks</Filter>
-    </ClInclude>
     <ClInclude Include="SDK\ModelRender.h">
       <Filter>SDK</Filter>
     </ClInclude>
@@ -334,14 +298,8 @@
     <ClInclude Include="SDK\Utils.h">
       <Filter>SDK</Filter>
     </ClInclude>
-    <ClInclude Include="Hacks\Chams.h">
-      <Filter>Hacks</Filter>
-    </ClInclude>
     <ClInclude Include="SDK\RenderView.h">
       <Filter>SDK</Filter>
-    </ClInclude>
-    <ClInclude Include="Hacks\Aimbot.h">
-      <Filter>Hacks</Filter>
     </ClInclude>
     <ClInclude Include="SDK\Entity.h">
       <Filter>SDK</Filter>
@@ -367,9 +325,6 @@
     <ClInclude Include="SDK\Recv.h">
       <Filter>SDK</Filter>
     </ClInclude>
-    <ClInclude Include="Hacks\Visuals.h">
-      <Filter>Hacks</Filter>
-    </ClInclude>
     <ClInclude Include="SDK\NetworkChannel.h">
       <Filter>SDK</Filter>
     </ClInclude>
@@ -393,9 +348,6 @@
     </ClInclude>
     <ClInclude Include="SDK\FrameStage.h">
       <Filter>SDK</Filter>
-    </ClInclude>
-    <ClInclude Include="Hacks\Backtrack.h">
-      <Filter>Hacks</Filter>
     </ClInclude>
     <ClInclude Include="SDK\VarMapping.h">
       <Filter>SDK</Filter>
@@ -430,9 +382,6 @@
     <ClInclude Include="SDK\AnimState.h">
       <Filter>SDK</Filter>
     </ClInclude>
-    <ClInclude Include="Hacks\AntiAim.h">
-      <Filter>Hacks</Filter>
-    </ClInclude>
     <ClInclude Include="SDK\matrix3x4.h">
       <Filter>SDK</Filter>
     </ClInclude>
@@ -453,9 +402,6 @@
     </ClInclude>
     <ClInclude Include="SDK\Prediction.h">
       <Filter>SDK</Filter>
-    </ClInclude>
-    <ClInclude Include="Hacks\EnginePrediction.h">
-      <Filter>Hacks</Filter>
     </ClInclude>
     <ClInclude Include="SDK\StudioRender.h">
       <Filter>SDK</Filter>
@@ -523,9 +469,6 @@
     <ClInclude Include="GameData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hacks\StreamProofESP.h">
-      <Filter>Hacks</Filter>
-    </ClInclude>
     <ClInclude Include="Helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -579,9 +522,6 @@
     </ClInclude>
     <ClInclude Include="imgui\imgui_freetype.h">
       <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="Hacks\Sound.h">
-      <Filter>Hacks</Filter>
     </ClInclude>
     <ClInclude Include="JsonForward.h">
       <Filter>Header Files</Filter>
