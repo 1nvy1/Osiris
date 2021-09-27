@@ -2460,6 +2460,9 @@ namespace ImGui
     inline void RenderBullet(ImVec2 pos)                                { ImGuiWindow* window = GetCurrentWindow(); RenderBullet(window->DrawList, pos, GetColorU32(ImGuiCol_Text)); }
 #endif
 
+    bool WeaponChild(const char* icon, const char* label, const bool active, const ImVec2& size_arg, ImGuiButtonFlags flags, ImVec4 color);
+    IMGUI_API bool          TabEx(const char* label, const bool active = false, const ImVec2& size_arg = ImVec2(0, 0), ImGuiButtonFlags flags = 0);
+
     // Widgets
     IMGUI_API void          TextEx(const char* text, const char* text_end = NULL, ImGuiTextFlags flags = 0);
     IMGUI_API bool          ButtonEx(const char* label, const ImVec2& size_arg = ImVec2(0, 0), ImGuiButtonFlags flags = 0);

@@ -524,19 +524,12 @@ static bool windowOpen = false;
 
 void InventoryChanger::menuBarItem() noexcept
 {
-    if (ImGui::MenuItem("Inventory Changer")) {
-        windowOpen = true;
-        ImGui::SetWindowFocus("Inventory Changer");
-        ImGui::SetWindowPos("Inventory Changer", { 100.0f, 100.0f });
-    }
+   
 }
 
 void InventoryChanger::tabItem() noexcept
 {
-    if (ImGui::BeginTabItem("Inventory Changer")) {
-        drawGUI(true);
-        ImGui::EndTabItem();
-    }
+    
 }
 
 static ImTextureID getItemIconTexture(const std::string& iconpath) noexcept;
@@ -752,131 +745,265 @@ namespace ImGui
         window->DC.CursorPosPrevLine.y = cursorPosBackup;
         window->DC.CursorPos.y = cursorPosNext;
     }
+
+    static std::map<int, float> stepList = {};
+    static std::map<int, float> stepList2 = {};
+
+    static void SkinIconItem(const StaticData::GameItem& item, const ImVec2& iconSizeSmall, const ImVec2& iconSizeLarge, int weaponId) noexcept
+    {
+        ImGuiWindow* window = GetCurrentWindow();
+        if (window->SkipItems)
+            return;
+
+        const ImGuiContext& g = *GImGui;
+        const ImGuiStyle& style = g.Style;
+
+        const auto id = window->GetID(0);
+
+        const auto height = ImMax(0.0f, ImMax(0.f, iconSizeSmall.y));
+        const auto rarityBulletRadius = IM_FLOOR(height * 0.2f);
+        const auto size = ImVec2{ iconSizeSmall.x, height };
+
+        ImVec2 pos = window->DC.CursorPos;
+        pos.y += window->DC.CurrLineTextBaseOffset;
+        ItemSize(size, 0.0f);
+
+        const auto smallIconMin = pos;
+        const auto smallIconMax = smallIconMin + iconSizeSmall;
+
+        const auto itemName = StaticData::getWeaponName(item.weaponID).data();
+        const auto itemNameSize = CalcTextSize(itemName, nullptr);
+
+        ImVec2 size123 = CalcItemSize(ImVec2(160, 160), itemNameSize.x + style.FramePadding.x * 2.0f, itemNameSize.y + style.FramePadding.y * 2.0f);
+
+        const auto paintKitName = item.hasPaintKit() ? StaticData::paintKits()[item.dataIndex].name.c_str() : "";
+        const auto paintKitNameSize = CalcTextSize(paintKitName, nullptr);
+
+        const auto itemNameMin = pos;
+        const auto itemNameMax = itemNameMin + ImVec2{ itemNameSize.x, size.y };
+
+        const auto separatorHeightInv = IM_FLOOR(height * 0.2f);
+        const auto separatorMin = ImVec2{ itemNameMax.x + 5.0f, pos.y + separatorHeightInv };
+        const auto separatorMax = separatorMin + ImVec2{ 1.0f, height - 2.0f * separatorHeightInv };
+
+        const auto paintKitNameMin = ImVec2{ separatorMax.x + 5.0f, pos.y };
+        const auto paintKitNameMax = paintKitNameMin + ImVec2{ paintKitNameSize.x, size.y };
+
+        // Selectables are meant to be tightly packed together with no click-gap, so we extend their box to cover spacing between selectable.
+        ImRect bb(pos, pos + ImVec2{ ImMax(size.x, window->WorkRect.Max.x - pos.x), size.y });
+        const float spacingX = style.ItemSpacing.x;
+        const float spacingY = style.ItemSpacing.y;
+        const float spacingL = IM_FLOOR(spacingX * 0.50f);
+        const float spacingU = IM_FLOOR(spacingY * 0.50f);
+        bb.Min.x -= spacingL;
+        bb.Min.y -= spacingU;
+        bb.Max.x += (spacingX - spacingL);
+        bb.Max.y += (spacingY - spacingU) + 70;
+
+        if (!ItemAdd(bb, id))
+            return;
+
+        if (const auto icon = getItemIconTexture(item.iconPath)) {
+            window->DrawList->AddImage(icon, smallIconMin, smallIconMax);
+        }
+
+        auto windowWidth = ImGui::GetWindowSize().x;
+
+        ImVec2 f = ImVec2((pos.x - 30) + (windowWidth - ImGui::CalcTextSize(itemName).x) * 0.5f, pos.y);
+        ImVec2 f2 = ImVec2((pos.x - 30) + (windowWidth - ImGui::CalcTextSize(paintKitName).x) * 0.5f, pos.y + 125);
+
+        if (itemNameSize.x >= 160) {
+            if (stepList2.find(weaponId) == stepList.end()) {
+                stepList2[weaponId] = 0.0f;
+            }
+
+            if (ImGui::IsItemHovered()) {
+                stepList2[weaponId] -= 1.0f;
+                if (stepList2[weaponId] == -ImGui::CalcTextSize(itemName).x) {
+                    stepList2[weaponId] = ImGui::CalcTextSize(itemName).x;
+                }
+                f.x += stepList2[weaponId];
+            } else {
+                stepList2[weaponId] = 0.0f;
+            }
+        }
+
+        if (item.hasPaintKit()) {
+            ImGui::RenderTextClipped(f, ImVec2(bb.Max.x, bb.Max.y), itemName, nullptr, &itemNameSize, { 0.0f, 0.8f });
+            if (paintKitNameSize.x >= 160) {
+                if (stepList.find(weaponId) == stepList.end()) {
+                    stepList[weaponId] = 0.0f;
+                }
+
+                if (ImGui::IsItemHovered()) {
+                    stepList[weaponId] -= 1.0f;
+                    if (stepList[weaponId] == -ImGui::CalcTextSize(paintKitName).x) {
+                        stepList[weaponId] = ImGui::CalcTextSize(paintKitName).x;
+                    }
+                    f2.x += stepList[weaponId];
+                }
+                else {
+                    stepList[weaponId] = 0.0f;
+                }
+            }
+
+            ImGui::RenderTextClipped(f2, ImVec2(bb.Max.x, bb.Max.y), paintKitName, nullptr, &paintKitNameSize, { 0.0f, 0.0f });
+        } else {
+            f.y += 70;
+            ImGui::RenderTextClipped(f, ImVec2(bb.Max.x, bb.Max.y), itemName, nullptr, &itemNameSize, { 0.0f, 0.8f });
+        }
+    }
+}
+
+ImVec4 getColorByRarity(int rarity) noexcept {
+    static std::vector<ImVec4> rarityList = {
+        ImVec4(106,  97,  85, 255),
+        ImVec4(176, 195, 217, 255),
+        ImVec4(94, 152, 217, 255),
+        ImVec4(75, 105, 255, 255),
+        ImVec4(136,  71, 255, 255),
+        ImVec4(211,  44, 230, 255),
+        ImVec4(235,  75,  75, 255),
+        ImVec4(228, 174,  57, 255)
+    };
+    return rarity > rarityList.size() ? rarityList[0] : rarityList[rarity];
+
+};
+
+static bool setupWeaponList = false;
+static WeaponId weaponSelectedId = WeaponId::Deagle;
+
+void WeaponSideBarRender() {
+    auto w = ImGui::GetWindowWidth(); 
+    auto h = ImGui::GetWindowHeight();
+    ImGui::SetCursorPos(ImVec2(-1, h - 650));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
+    ImGui::BeginChild(" ", ImVec2(200, 640), false, ImGuiWindowFlags_NoTitleBar);
+    const auto& weaponNameList = StaticData::weaponNameList();
+    {
+        for (WeaponId weaponId : WEAPON_IDS) {
+            std::string weaponName = weaponId == WeaponId::All ? "#" : StaticData::getWeaponName(weaponId).data();
+            const char* weaponNameChar = weaponName.c_str();
+
+            if (ImGui::Tab(weaponNameChar, weaponSelectedId == weaponId, ImVec2(200, 40))) {
+                weaponSelectedId = weaponId;
+            }
+        }
+    }
+    ImGui::EndChild();
+
+    ImGui::PopStyleVar();
+}
+
+auto getGameItemListByWeaponId() {
+    const auto gameItems = StaticData::gameItems();
+
+    if (weaponSelectedId == WeaponId::All) return gameItems;
+
+    std::vector<StaticData::GameItem> result;
+
+    std::copy_if(gameItems.begin(), gameItems.end(), std::back_inserter(result), [](StaticData::GameItem gameItem) {return (int)gameItem.weaponID == (int)weaponSelectedId; });
+    
+    return result;
+}
+
+static std::map<StaticData::GameItem, int> weaponIndexList = {};
+
+int getWeaponIndex(StaticData::GameItem gameItem) {
+    if (weaponIndexList.find(gameItem) != weaponIndexList.end()) return weaponIndexList[gameItem];
+
+    auto gameItems = StaticData::gameItems();
+
+    auto result = std::find(gameItems.begin(), gameItems.end(), gameItem);
+
+    if (result == gameItems.end()) return 0;
+
+    int weaponIndex = result - gameItems.begin();
+
+    weaponIndexList[gameItem] = weaponIndex;
+
+    return weaponIndex;
 }
 
 void InventoryChanger::drawGUI(bool contentOnly) noexcept
 {
-    if (!contentOnly) {
-        if (!windowOpen)
-            return;
-        ImGui::SetNextWindowSize({ 700.0f, 400.0f });
-        if (!ImGui::Begin("Inventory Changer", &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
-            ImGui::End();
-            return;
+    WeaponSideBarRender();
+
+    auto w = ImGui::GetWindowWidth();
+    auto h = ImGui::GetWindowHeight();
+
+    ImGuiStyle& s = ImGui::GetStyle();
+
+    s.Colors[ImGuiCol_ChildBg] = ImColor(33, 36, 41);
+
+    const auto gameItems = setupWeaponList ? getGameItemListByWeaponId() : StaticData::gameItems();
+
+    int yOffsetMax = gameItems.size() / 4;
+
+    constexpr auto passesFilter = [](const std::wstring& str, std::wstring filter) {
+        constexpr auto delimiter = L" ";
+        wchar_t* _;
+        wchar_t* token = std::wcstok(filter.data(), delimiter, &_);
+        while (token) {
+            if (!std::wcsstr(str.c_str(), token))
+                return false;
+            token = std::wcstok(nullptr, delimiter, &_);
         }
-    }
-
-    static std::string filter;
-
-    static bool isInAddMode = false;
-
-    if (!isInAddMode && ImGui::Button("Add items.."))
-        isInAddMode = true;
-
-    if (!isInAddMode) {
-        ImGui::SameLine();
-        if (ImGui::Button("Force Update"))
-            InventoryChanger::scheduleHudUpdate();
-    }
-
-    constexpr auto rarityColor = [](int rarity) noexcept {
-        constexpr auto rarityColors = std::to_array<ImU32>({
-            IM_COL32(106,  97,  85, 255),
-            IM_COL32(176, 195, 217, 255),
-            IM_COL32( 94, 152, 217, 255),
-            IM_COL32( 75, 105, 255, 255),
-            IM_COL32(136,  71, 255, 255),
-            IM_COL32(211,  44, 230, 255),
-            IM_COL32(235,  75,  75, 255),
-            IM_COL32(228, 174,  57, 255)
-            });
-        return rarityColors[static_cast<std::size_t>(rarity) < rarityColors.size() ? rarity : 0];
+        return true;
     };
 
-    if (isInAddMode) {
-        static std::unordered_map<StaticData::ItemIndex, int> selectedToAdd;
-        static std::vector<StaticData::ItemIndex> toAddOrder;
+    static std::unordered_map<StaticData::ItemIndex, int> selectedToAdd;
+    static std::vector<StaticData::ItemIndex> toAddOrder;
 
-        if (ImGui::Button("Back")) {
-            isInAddMode = false;
-            selectedToAdd.clear();
-            toAddOrder.clear();
-        }
-        ImGui::SameLine();
-        const auto canAdd = !selectedToAdd.empty();
-        if (!canAdd) {
-            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-        }
-        if (ImGui::Button(("Add selected (" + std::to_string(selectedToAdd.size()) + ")").c_str())) {
-            isInAddMode = false;
-            addToInventory(selectedToAdd, toAddOrder);
-            selectedToAdd.clear();
-            toAddOrder.clear();
-        }
-        if (!canAdd) {
-            ImGui::PopItemFlag();
-            ImGui::PopStyleVar();
-        }
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(-1.0f);
-        ImGui::InputTextWithHint("##search", "Search weapon skins, stickers, knives, gloves, music kits..", &filter);
+    ImGui::SetCursorPos(ImVec2(w - 730, h - 680));
+    ImGui::BeginChild("#WeaponList", ImVec2(720, 670), false, ImGuiWindowFlags_NoTitleBar);
+    {
+        for (int yOffset = 0; yOffset < yOffsetMax; yOffset++) {
+            for (int xOffset = 0; xOffset < 4; xOffset++) {
+                int x = 950 - (180 * xOffset),
+                    y = 680 - (180 * yOffset);
 
-        constexpr auto passesFilter = [](const std::wstring& str, std::wstring filter) {
-            constexpr auto delimiter = L" ";
-            wchar_t* _;
-            wchar_t* token = std::wcstok(filter.data(), delimiter, &_);
-            while (token) {
-                if (!std::wcsstr(str.c_str(), token))
-                    return false;
-                token = std::wcstok(nullptr, delimiter, &_);
-            }
-            return true;
-        };
+                const int weaponIndex = (4 * yOffset) + xOffset;
 
-        if (ImGui::BeginChild("##scrollarea", ImVec2{ 0.0f, contentOnly ? 400.0f : 0.0f })) {
-            const auto& gameItems = StaticData::gameItems();
-            const std::wstring filterWide = Helpers::toUpper(Helpers::toWideString(filter));
-            for (std::size_t i = 0; i < gameItems.size(); ++i) {
-                if (!filter.empty() && !passesFilter(std::wstring(StaticData::getWeaponNameUpper(gameItems[i].weaponID)), filterWide) && (!gameItems[i].hasPaintKit() || !passesFilter(StaticData::paintKits()[gameItems[i].dataIndex].nameUpperCase, filterWide)))
-                    continue;
-                ImGui::PushID(i);
+                if (weaponIndex > gameItems.size()) continue;
 
-                const auto selected = selectedToAdd.contains(i);
+                StaticData::GameItem gameItem = gameItems[weaponIndex];
+                const int weaponId = getWeaponIndex(gameItem);
 
-                if (const auto toAddCount = selected ? &selectedToAdd[i] : nullptr; ImGui::SkinSelectable(gameItems[i], { 37.0f, 28.0f }, { 200.0f, 150.0f }, rarityColor(gameItems[i].rarity), selected, toAddCount)) {
-                    if (selected) {
-                        selectedToAdd.erase(i);
-                        std::erase(toAddOrder, i);
-                    } else {
-                        selectedToAdd.emplace(i, 1);
-                        toAddOrder.push_back(i);
+                //if(!passesFilter(Helpers::toWideString(StaticData::getWeaponName(gameItems[weaponId].weaponID).data()), Helpers::toWideString(weaponSelectedName))) continue;
+
+                ImGui::PushID(weaponId);
+
+                ImGui::SetCursorPos(ImVec2(w - x, h - y));
+                ImGui::BeginChild(std::to_string(weaponId).append("child").c_str(), ImVec2(160, 160), false, ImGuiWindowFlags_NoTitleBar);
+                {
+                    ImVec4 COLOR = getColorByRarity(gameItem.rarity);
+
+                    if (ImGui::WeaponChild(std::to_string(weaponId).append("weapon").c_str(), std::to_string(weaponId).append("label").c_str(), true, ImVec2(160, 160), 0, COLOR)) {
+                        selectedToAdd.emplace(weaponId, 1);
+                        toAddOrder.push_back(weaponId);
+                        addToInventory(selectedToAdd, toAddOrder);
+                        selectedToAdd.clear();
+                        toAddOrder.clear();
                     }
+
+                    ImGui::SetCursorPos(ImVec2(30, 10));
+
+                    ImGui::SkinIconItem(gameItem, { 105.0f, 80.0f }, { 200.0f, 150.0f }, weaponId);
                 }
                 ImGui::PopID();
+                ImGui::EndChild();
             }
         }
-        ImGui::EndChild();
-    } else {
-        if (ImGui::BeginChild("##scrollarea2", ImVec2{ 0.0f, contentOnly ? 400.0f : 0.0f })) {
-            auto& inventory = Inventory::get();
-            for (std::size_t i = inventory.size(); i-- > 0;) {
-                if (inventory[i].isDeleted() || inventory[i].shouldDelete())
-                    continue;
-
-                ImGui::PushID(i);
-                bool shouldDelete = false;
-                ImGui::SkinItem(inventory[i].get(), { 37.0f, 28.0f }, { 200.0f, 150.0f }, rarityColor(inventory[i].get().rarity), shouldDelete);
-                if (shouldDelete)
-                    inventory[i].markToDelete();
-                ImGui::PopID();
-            }
-        }
-        ImGui::EndChild();
     }
+    ImGui::EndChild();
 
-    if (!contentOnly)
-        ImGui::End();
+    s.Colors[ImGuiCol_ChildBg] = ImColor(43, 46, 51);
+
+    if (setupWeaponList == false) {
+        setupWeaponList = true;
+    }
 }
 
 void InventoryChanger::clearInventory() noexcept
@@ -1079,7 +1206,6 @@ static ImTextureID getItemIconTexture(const std::string& iconpath) noexcept
         if (frameCount != ImGui::GetFrameCount()) {
             frameCount = ImGui::GetFrameCount();
             timeSpentThisFrame = 0.0f;
-            // memory->debugMsg("LOADED %d ICONS\n", loadedThisFrame);
             loadedThisFrame = 0;
         }
 
@@ -1094,7 +1220,6 @@ static ImTextureID getItemIconTexture(const std::string& iconpath) noexcept
         if (!handle)
             handle = interfaces->baseFileSystem->open(("resource/flash/" + iconpath + ".png").c_str(), "r", "GAME");
 
-        assert(handle);
         if (handle) {
             if (const auto size = interfaces->baseFileSystem->size(handle); size > 0) {
                 const auto buffer = std::make_unique<std::uint8_t[]>(size);
@@ -1105,8 +1230,6 @@ static ImTextureID getItemIconTexture(const std::string& iconpath) noexcept
                     if (const auto data = stbi_load_from_memory((const stbi_uc*)buffer.get(), size, &width, &height, nullptr, STBI_rgb_alpha)) {
                         icon.texture.init(width, height, data);
                         stbi_image_free(data);
-                    } else {
-                        assert(false);
                     }
                 }
             }

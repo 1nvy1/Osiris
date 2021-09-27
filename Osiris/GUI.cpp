@@ -24,9 +24,26 @@
 #include "Interfaces.h"
 #include "SDK/InputSystem.h"
 #include <Hacks/Misc.h>
+#include "Gilroy-Medium.h"
+#include "Icons.h"
 
-constexpr auto windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
-| ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+constexpr auto windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+
+ImFont* g_TabsFont;
+
+void SidebarRender() {
+    auto& s = ImGui::GetStyle();
+    auto d = ImGui::GetWindowDrawList();
+    auto p = ImGui::GetWindowPos();
+    d->AddRectFilled(p, ImVec2(p.x + 950, p.y + 700), ImGui::GetColorU32(ImGuiCol_WindowBg), s.WindowRounding);
+    d->AddRectFilled(p, ImVec2(p.x + 200, p.y + 700), ImGui::GetColorU32(ImGuiCol_ChildBg), s.WindowRounding, 0x5);
+
+    ImGui::BeginGroup();
+    {
+        d->AddText(g_TabsFont, 16.f, ImVec2(p.x + (190 - ImGui::CalcTextSize("CSChanger.ru").x) / 2, p.y + 20), ImGui::GetColorU32(ImGuiCol_Text), "CSChanger.ru");
+    }
+    ImGui::EndGroup();
+}
 
 static ImFont* addFontFromVFONT(const std::string& path, float size, const ImWchar* glyphRanges, bool merge) noexcept
 {
@@ -48,9 +65,36 @@ static ImFont* addFontFromVFONT(const std::string& path, float size, const ImWch
 GUI::GUI() noexcept
 {
     ImGui::StyleColorsDark();
-    ImGuiStyle& style = ImGui::GetStyle();
+    ImGuiStyle& s = ImGui::GetStyle();
+    s.FrameRounding = 0;
+    s.WindowRounding = 0;
+    s.ChildRounding = 0;
+    s.ScrollbarRounding = 5.f;
+    s.PopupRounding = 0;
+    s.ScrollbarSize = 4.f;
+    s.FramePadding = ImVec2(3, 2);
 
-    style.ScrollbarSize = 9.0f;
+    auto c = s.Colors;
+    c[ImGuiCol_WindowBg] = ImColor(33, 36, 41);
+    c[ImGuiCol_FrameBg] = ImColor(38, 41, 46);
+    c[ImGuiCol_FrameBgHovered] = ImColor(255, 90, 90, 200);
+    c[ImGuiCol_FrameBgActive] = ImColor(255, 90, 90);
+    c[ImGuiCol_Separator] = ImColor(255, 90, 90);
+    c[ImGuiCol_PopupBg] = ImColor(33, 36, 41);
+    c[ImGuiCol_ScrollbarBg] = ImColor(38, 41, 46);
+    c[ImGuiCol_ScrollbarGrab] = ImColor(78, 124, 255);
+    c[ImGuiCol_ScrollbarGrabActive] = ImColor(78, 124, 255);
+    c[ImGuiCol_ScrollbarGrabHovered] = ImColor(78, 124, 255);
+    c[ImGuiCol_Border] = ImColor();
+    c[ImGuiCol_ChildBg] = ImColor(43, 46, 51);
+    c[ImGuiCol_Header] = ImColor(38, 41, 46);
+    c[ImGuiCol_HeaderHovered] = ImColor(78, 124, 255, 200);
+    c[ImGuiCol_HeaderActive] = ImColor(78, 124, 255);
+    c[ImGuiCol_Button] = ImColor(38, 41, 46);
+    c[ImGuiCol_ButtonHovered] = ImColor(78, 124, 255, 200);
+    c[ImGuiCol_ButtonActive] = ImColor(78, 124, 255);
+    c[ImGuiCol_Text] = ImColor(255, 255, 255);
+    c[ImGuiCol_TextDisabled] = ImColor(95, 98, 103);
 
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = nullptr;
@@ -60,7 +104,6 @@ GUI::GUI() noexcept
     ImFontConfig cfg;
     cfg.SizePixels = 15.0f;
 
-#ifdef _WIN32
     if (PWSTR pathToFonts; SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Fonts, 0, nullptr, &pathToFonts))) {
         const std::filesystem::path path{ pathToFonts };
         CoTaskMemFree(pathToFonts);
@@ -77,34 +120,32 @@ GUI::GUI() noexcept
         io.Fonts->AddFontFromFileTTF((path / "seguisym.ttf").string().c_str(), 15.0f, &cfg, symbol);
         cfg.MergeMode = false;
     }
-#else
-    fonts.normal15px = addFontFromVFONT("csgo/panorama/fonts/notosans-regular.vfont", 15.0f, Helpers::getFontGlyphRanges(), false);
-#endif
+    g_TabsFont = io.Fonts->AddFontFromMemoryTTF(GilroyMedium, sizeof(GilroyMedium), 14.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+
     if (!fonts.normal15px)
         io.Fonts->AddFontDefault(&cfg);
+
     addFontFromVFONT("csgo/panorama/fonts/notosanskr-regular.vfont", 15.0f, io.Fonts->GetGlyphRangesKorean(), true);
     addFontFromVFONT("csgo/panorama/fonts/notosanssc-regular.vfont", 17.0f, io.Fonts->GetGlyphRangesChineseFull(), true);
 }
 
 void GUI::render() noexcept
 {
-    if (!config->style.menuStyle) {
-        renderMenuBar();
+    ImGui::SetNextWindowSize(ImVec2(950, 700));
+    ImGui::Begin("CSChanger", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_AlwaysAutoResize |
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
+    {
+        SidebarRender();
         InventoryChanger::drawGUI(false);
-        renderStyleWindow();
-        renderConfigWindow();
-    } else {
-        renderGuiStyle2();
     }
+    ImGui::End();
 }
 
 void GUI::updateColors() const noexcept
 {
-    switch (config->style.menuColors) {
-    case 0: ImGui::StyleColorsDark(); break;
-    case 1: ImGui::StyleColorsLight(); break;
-    case 2: ImGui::StyleColorsClassic(); break;
-    }
+    
 }
 
 void GUI::handleToggle() noexcept
@@ -112,8 +153,10 @@ void GUI::handleToggle() noexcept
     if (Misc::isMenuKeyPressed()) {
         open = !open;
 
-        if (!open)
+        if (!open) {
+            config->save(0);
             interfaces->inputSystem->resetInputState();
+        }
 
         ImGui::GetIO().MouseDrawCursor = gui->open;
     }

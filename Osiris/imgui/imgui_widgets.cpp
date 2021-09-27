@@ -710,6 +710,119 @@ bool ImGui::Button(const char* label, const ImVec2& size_arg)
     return ButtonEx(label, size_arg, ImGuiButtonFlags_None);
 }
 
+extern ImFont* g_TabsFont;
+
+bool ImGui::WeaponChild(const char* icon, const char* label, const bool active, const ImVec2& size_arg, ImGuiButtonFlags flags, ImVec4 color)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(icon);
+    const ImVec2 icon_size = CalcTextSize(icon, NULL, true);
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+    ImVec2 pos = window->DC.CursorPos;
+    if ((flags & ImGuiButtonFlags_AlignTextBaseLine) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+        pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
+    ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x, label_size.y + style.FramePadding.y);
+
+    const ImRect bb(pos, pos + size);
+    ItemSize(size, style.FramePadding.y);
+    if (!ItemAdd(bb, id))
+        return false;
+
+    if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+        flags |= ImGuiButtonFlags_Repeat;
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+    if (pressed)
+        MarkItemEdited(id);
+    static int alpha = 0;
+    if (active)
+    {
+        alpha += 5;
+        if (alpha >= 255)
+            alpha = 255;
+    }
+    if (pressed && !active)
+        alpha = 0;
+    RenderNavHighlight(bb, id);
+
+    auto d = ImGui::GetWindowDrawList();
+
+    d->AddRectFilledMultiColor(bb.Min, bb.Max, ImColor(int(color.x), int(color.y), int(color.z), alpha / 210), ImColor(int(color.x), int(color.y), int(color.z), alpha / 210), ImColor(int(color.x), int(color.y), int(color.z), alpha / 5), ImColor(int(color.x), int(color.y), int(color.z), alpha / 5));
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, icon, window->DC.LastItemStatusFlags);
+    return pressed;
+}
+
+bool ImGui::TabEx(const char* label, const bool active, const ImVec2& size_arg, ImGuiButtonFlags flags)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(std::string(label).append("tabex").c_str());
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+    if (label_size.x <= 0)
+        return false;
+
+    ImVec2 pos = window->DC.CursorPos;
+    if ((flags & ImGuiButtonFlags_AlignTextBaseLine) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+        pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
+    ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x, label_size.y + style.FramePadding.y);
+
+    const ImRect bb(pos, pos + size);
+    ItemSize(size, style.FramePadding.y);
+    if (!ItemAdd(bb, id))
+        return false;
+
+    if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+        flags |= ImGuiButtonFlags_Repeat;
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+    if (pressed)
+        MarkItemEdited(id);
+    static int alpha = 0;
+    if (active)
+    {
+        alpha += 5;
+        if (alpha >= 255)
+            alpha = 255;
+    }
+    if (pressed && !active)
+        alpha = 0;
+    RenderNavHighlight(bb, id);
+
+    if (active) {
+        auto d = ImGui::GetWindowDrawList();
+        d->AddRectFilledMultiColor(bb.Min, bb.Max, ImColor(78, 124, 255, alpha / 5), ImColor(78, 124, 255, alpha / 50), ImColor(78, 124, 255, alpha / 50), ImColor(78, 124, 255, alpha / 5));
+        d->AddRectFilled(ImVec2(bb.Max.x - 2, bb.Min.y), bb.Max, ImColor(78, 124, 255, alpha));
+    }
+    ImColor col = active ? GetColorU32(ImGuiCol_Text) : GetColorU32(ImGuiCol_TextDisabled);
+
+    PushStyleColor(ImGuiCol_Text, (ImVec4)col);
+
+    //PushFont(g_TabsFont);
+    RenderTextClipped(bb.Min + style.FramePadding + ImVec2(40, 0), bb.Max - style.FramePadding, label, NULL, &label_size, ImVec2(0.f, 0.5f));
+   // PopFont();
+
+    //RenderTextClipped(bb.Min + style.FramePadding + ImVec2(40, 0), bb.Max + ImVec2(100, 100), label, NULL, &label_size, ImVec2(0.f, 0.5f));
+
+    PopStyleColor();
+
+    return pressed;
+}
+
+bool ImGui::Tab(const char* label, const bool active, const ImVec2& size_arg)
+{
+    return TabEx(label, active, size_arg, 0);
+}
+
 // Small buttons fits within text without additional vertical spacing.
 bool ImGui::SmallButton(const char* label)
 {

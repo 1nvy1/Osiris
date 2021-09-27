@@ -66,13 +66,17 @@ int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPA
         path = homeDir;
 #endif
 
-    path /= "Test";
+    path /= "CSChanger";
     return path;
 }
 
 Config::Config() noexcept : path{ buildConfigsFolderPath() }
 {
     listConfigs();
+
+    if (configs.size() == 0) {
+        add(u8"default.json");
+    }
 
     load(u8"default.json", false);
 

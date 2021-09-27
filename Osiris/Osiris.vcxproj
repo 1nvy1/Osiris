@@ -195,11 +195,13 @@
     <ClInclude Include="freetype\freetype\config\ftmodule.h" />
     <ClInclude Include="freetype\freetype\config\ftoption.h" />
     <ClInclude Include="GameData.h" />
+    <ClInclude Include="Gilroy-Medium.h" />
     <ClInclude Include="Hacks\Misc.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="Hooks\MinHook.h" />
     <ClInclude Include="Hooks\VmtHook.h" />
     <ClInclude Include="Hooks\VmtSwap.h" />
+    <ClInclude Include="Icons.h" />
     <ClInclude Include="imguiCustom.h" />
     <ClInclude Include="imgui\imgui_freetype.h" />
     <ClInclude Include="imgui\imgui_stdlib.h" />

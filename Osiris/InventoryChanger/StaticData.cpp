@@ -65,7 +65,7 @@ private:
         };
 
         assert(!_itemsSorted.empty());
-        return std::equal_range(_itemsSorted.cbegin(), _itemsSorted.cend(), weaponID, Comp{ _gameItems }); // not using std::ranges::equal_range() here because clang 12 on linux doesn't support it yet
+        return std::equal_range(_itemsSorted.cbegin(), _itemsSorted.cend(), weaponID, Comp{ _gameItems });
     }
 
 public:
@@ -73,6 +73,19 @@ public:
     {
         static const StaticDataImpl staticData;
         return staticData;
+    }
+
+    auto findItemsByWeaponId(WeaponId weaponId) const noexcept
+    {
+        struct Comp {
+            explicit Comp(const std::vector<StaticData::GameItem>& gameItems) : gameItems{ gameItems } {}
+            bool operator()(WeaponId weaponID, std::size_t index) const noexcept { return weaponID < gameItems[index].weaponID; }
+            bool operator()(std::size_t index, WeaponId weaponID) const noexcept { return gameItems[index].weaponID < weaponID; }
+        private:
+            const std::vector<StaticData::GameItem>& gameItems;
+        };
+
+        return std::equal_range(_itemsSorted.cbegin(), _itemsSorted.cend(), weaponId, Comp{ _gameItems });
     }
 
     int getTournamentEventStickerID(std::uint32_t tournamentID) const noexcept
@@ -129,6 +142,8 @@ public:
         return InvalidItemIdx;
     }
 
+    static const auto& itemsSorted() noexcept { return instance()._itemsSorted; }
+    static const auto& weaponNameList() noexcept { return instance()._weaponNamesUpper; }
     static const auto& gameItems() noexcept { return instance()._gameItems; }
     static const auto& collectibles() noexcept { return instance()._collectibles; }
     static const auto& cases() noexcept { return instance()._cases; }
@@ -513,6 +528,16 @@ private:
     std::unordered_map<WeaponId, std::wstring> _weaponNamesUpper;
 };
 
+const std::vector<StaticData::ItemIndex>& StaticData::itemsSorted() noexcept
+{
+    return StaticDataImpl::itemsSorted();
+}
+
+const std::unordered_map<WeaponId, std::wstring>& StaticData::weaponNameList() noexcept
+{
+    return StaticDataImpl::weaponNameList();
+}
+
 const std::vector<StaticData::GameItem>& StaticData::gameItems() noexcept
 {
     return StaticDataImpl::gameItems();
@@ -551,6 +576,11 @@ StaticData::ItemIndex StaticData::getItemIndex(WeaponId weaponID, int paintKit) 
 int StaticData::findSouvenirTournamentSticker(std::uint32_t tournamentID) noexcept
 {
     return StaticDataImpl::instance().getTournamentEventStickerID(tournamentID);
+}
+
+auto StaticData::findItemsByWeaponId(WeaponId weaponId) noexcept
+{
+    return StaticDataImpl::instance().findItemsByWeaponId(weaponId);
 }
 
 int StaticData::getTournamentTeamGoldStickerID(std::uint32_t tournamentID, TournamentTeam team) noexcept

@@ -64,6 +64,8 @@ namespace StaticData
         std::size_t dataIndex;
 
         std::string iconPath;
+
+        auto operator<=>(const GameItem&) const = default;
     };
 
     struct PaintKit {
@@ -104,7 +106,9 @@ namespace StaticData
 
         bool hasLoot() const noexcept { return lootEndIdx > lootBeginIdx; }
         bool isSouvenirPackage() const noexcept { return souvenirPackageTournamentID != 0; }
-    };
+    };        
+    const std::vector<StaticData::ItemIndex >& itemsSorted() noexcept;
+    const std::unordered_map<WeaponId, std::wstring>& weaponNameList() noexcept;
 
     const std::vector<GameItem>& gameItems() noexcept;
     const std::vector<Case>& cases() noexcept;
@@ -116,6 +120,7 @@ namespace StaticData
     ItemIndex getItemIndex(WeaponId weaponID, int paintKit) noexcept;
 
     int findSouvenirTournamentSticker(std::uint32_t tournamentID) noexcept;
+    auto findItemsByWeaponId(WeaponId weaponId) noexcept;
     int getTournamentTeamGoldStickerID(std::uint32_t tournamentID, TournamentTeam team) noexcept;
     int getTournamentPlayerGoldStickerID(std::uint32_t tournamentID, int tournamentPlayerID) noexcept;
     bool isCollectibleGenuine(const GameItem& collectible) noexcept;
